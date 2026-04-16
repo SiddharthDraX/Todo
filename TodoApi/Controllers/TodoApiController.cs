@@ -18,6 +18,7 @@ namespace TodoApi.Controllers
         }
 
         // GET: TodoApiController
+        [HttpGet]
         public async Task<IActionResult> Index()
         {
             var tasks = await _repo.GetAllTasksAsync();
@@ -25,6 +26,7 @@ namespace TodoApi.Controllers
         }
 
         // GET: TodoApiController/Details/5
+        [HttpGet("Details/{id}")]
         public async Task<IActionResult> Details(int id)
         {
             var task = (await _repo.GetAllTasksAsync()).FirstOrDefault(t => t.TaskNo == id);
@@ -71,7 +73,7 @@ namespace TodoApi.Controllers
         }
 
         // POST: TodoApiController/Edit/5
-        [HttpPost]
+        [HttpPost("Edit/{id}")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, [Bind("TaskNo,Title,Description,StartDate,DueDate,Priority,Status")] Todo task)
         {
