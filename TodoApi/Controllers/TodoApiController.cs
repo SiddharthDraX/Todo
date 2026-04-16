@@ -10,24 +10,24 @@ namespace TodoApi.Controllers
 {
     public class TodoApiController : Controller
     {
-        private readonly ITodoRepo _repo;
+        ITodoRepo _repo;
 
         public TodoApiController(ITodoRepo repo)
         {
-            _repo = repo ?? throw new ArgumentNullException(nameof(repo));
+            _repo = repo;
         }
 
         // GET: TodoApiController
-        [HttpGet]
-        public async Task<IActionResult> Index()
+        [HttpGet("GetAll")]
+        public async Task<ActionResult> Getall()
         {
-            var tasks = await _repo.GetAllTasksAsync();
-            return View(tasks);
+           List<Todo> tasks = await _repo.GetAllTasksAsync();
+            return Ok(tasks);
         }
 
         // GET: TodoApiController/Details/5
         [HttpGet("Details/{id}")]
-        public async Task<IActionResult> Details(int id)
+        public async Task<ActionResult> Details(int id)
         {
             var task = (await _repo.GetAllTasksAsync()).FirstOrDefault(t => t.TaskNo == id);
             if (task == null) return NotFound();
@@ -35,37 +35,29 @@ namespace TodoApi.Controllers
         }
 
         // GET: TodoApiController/Create
-        public IActionResult Create()
+        public ActionResult Create()
         {
             return View();
         }
 
         // POST: TodoApiController/Create
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("TaskNo,Title,Description,StartDate,DueDate,Priority,Status")] Todo task)
+        [HttpPost("Create")]
+        //[ValidateAntiForgeryToken]
+        public async Task<ActionResult> Create(Todo task)
         {
-            if (!ModelState.IsValid) return View(task);
-
             try
             {
                 await _repo.AddTaskAsync(task);
-                return RedirectToAction(nameof(Index));
+                return Created($"api/TodoApi/{task.TaskNo}", task);
             }
-            catch (TodoException tex)
-            {
-                ModelState.AddModelError(string.Empty, tex.Message);
-                return View(task);
+            catch (Exception ex) { 
+                return BadRequest(new { message = ex.Message });
             }
-            catch (Exception)
-            {
-                ModelState.AddModelError(string.Empty, "An unexpected error occurred while creating the task.");
-                return View(task);
-            }
+          
         }
 
         // GET: TodoApiController/Edit/5
-        public async Task<IActionResult> Edit(int id)
+        public async Task<ActionResult> Edit(int id)
         {
             var task = (await _repo.GetAllTasksAsync()).FirstOrDefault(t => t.TaskNo == id);
             if (task == null) return NotFound();
@@ -99,7 +91,7 @@ namespace TodoApi.Controllers
         }
 
         // GET: TodoApiController/Delete/5
-        public async Task<IActionResult> Delete(int id)
+        public async Task<ActionResult> Delete(int id)
         {
             var task = (await _repo.GetAllTasksAsync()).FirstOrDefault(t => t.TaskNo == id);
             if (task == null) return NotFound();
@@ -107,9 +99,9 @@ namespace TodoApi.Controllers
         }
 
         // POST: TodoApiController/Delete/5
-        [HttpPost, ActionName("Delete")]
+        [HttpPost("Delete/{id}")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(int id)
+        public async Task<ActionResult> DeleteConfirmed(int id)
         {
             var task = (await _repo.GetAllTasksAsync()).FirstOrDefault(t => t.TaskNo == id);
             if (task == null) return NotFound();
